@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>英学坊 - 专业英语学习平台 | 全功能修复版</title>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #f5f7fb; color: #1f2937; line-height: 1.5; }
+        .header { background: linear-gradient(135deg, #1e3c72 0%, #2b4c7c 100%); color: white; padding: 1.5rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; }
+        .header h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+        .btn-home, .btn-logout { position: absolute; top: 1rem; right: 1.5rem; background: rgba(255,255,255,0.2); color: white; padding: 0.4rem 1rem; border-radius: 30px; text-decoration: none; font-size: 0.9rem; border: none; cursor: pointer; }
+        .btn-logout { background: #ef4444; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .section { background: white; border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .section h2 { margin-bottom: 1rem; font-size: 1.5rem; border-left: 5px solid #2b4c7c; padding-left: 1rem; }
+        .materials-grid, .exams-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 1.5rem; }
+        .material-card, .exam-card { background: #f9fafb; border-radius: 16px; padding: 1rem; border: 1px solid #e5e7eb; transition: transform 0.2s; position: relative; }
+        .material-card:hover, .exam-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .btn-start, button { background: #2b4c7c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 30px; cursor: pointer; margin-top: 0.75rem; font-weight: 500; transition: 0.2s; }
+        .btn-start:hover, button:hover { opacity: 0.9; transform: scale(0.98); }
+        .btn-submit { background: #10b981; width: 100%; padding: 0.8rem; font-size: 1rem; }
+        .exam-header { background: white; border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .exam-timer { font-size: 1.4rem; font-weight: bold; color: #dc2626; margin-top: 1rem; }
+        .student-info { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .student-info input { flex: 1; padding: 0.7rem; border: 1px solid #d1d5db; border-radius: 12px; }
+        .question-card { background: #ffffff; border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid #e5e7eb; }
+        .question-title { font-weight: 600; margin-bottom: 0.5rem; }
+        .score { font-size: 0.8rem; color: #6b7280; }
+        .options { margin: 1rem 0; }
+        .option { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0; cursor: pointer; }
+        .tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid #e5e7eb; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-btn { background: none; border: none; padding: 0.7rem 1.2rem; cursor: pointer; font-weight: 500; border-radius: 30px; color: #1f2937; }
+        .tab-btn.active { background: #2b4c7c; color: white; }
+        .tab-content { display: none; background: white; padding: 1.5rem; border-radius: 20px; }
+        .tab-content.active { display: block; }
+        .login-panel { max-width: 400px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 28px; text-align: center; }
+        input, select, textarea { width: 100%; margin: 0.5rem 0; padding: 0.7rem; border-radius: 12px; border: 1px solid #d1d5db; }
+        button { width: 100%; }
+        .footer { text-align: center; padding: 1.5rem; color: #6b7280; font-size: 0.8rem; }
+        @media (max-width:640px) { .student-info { flex-direction: column; } .btn-home, .btn-logout { position: static; margin-top: 10px; display: inline-block; } }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f1f5f9; }
+        .qr-img { margin-top: 1rem; text-align: center; }
+        .match-row { display: flex; gap: 1rem; margin-bottom: 0.5rem; align-items: center; }
+        .match-left, .match-right { flex: 1; }
+        .passage-text { background: #f9fafb; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; white-space: pre-wrap; }
+        hr { margin: 1rem 0; }
+        .template-download { background: #10b981; margin-top: 0.5rem; display: inline-block; width: auto; margin-right: 10px; }
+        .file-hint { font-size: 0.8rem; color: #6b7280; margin-top: -0.3rem; margin-bottom: 0.5rem; }
+        .material-img { max-width: 100%; border-radius: 12px; margin: 0.5rem 0; cursor: pointer; transition: 0.2s; }
+        .material-img:hover { opacity: 0.9; transform: scale(0.98); }
+        .download-btn { background: #3b82f6; display: inline-block; padding: 0.3rem 0.8rem; font-size: 0.8rem; margin-top: 0.5rem; margin-right: 0.5rem; text-decoration: none; color: white; border-radius: 20px; }
+        .doc-preview { background: #eef2ff; padding: 0.5rem; border-radius: 12px; text-align: center; margin: 0.5rem 0; }
+        .lightbox { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; cursor: pointer; }
+        .lightbox img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        .lightbox.show { display: flex; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; z-index: 10000; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<div id="lightbox" class="lightbox" onclick="closeLightbox()"><img id="lightbox-img" src=""></div>
+<script>
+    // ---------- 存储 Keys ----------
+    const STORAGE = {
+        MATERIALS: 'ym_materials',
+        EXAMS: 'ym_exams',
+        QUESTIONS: 'ym_questions',
+        RESULTS: 'ym_results'
+    };
+    function getData(key) { return JSON.parse(localStorage.getItem(key) || '[]'); }
+    function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+    // 提示工具
+    function showToast(msg, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        toast.style.background = isError ? '#ef4444' : '#10b981';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // 图片预览
+    window.openLightbox = function(src) {
+        const lightbox = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        img.src = src;
+        lightbox.classList.add('show');
+    };
+    window.closeLightbox = function() {
+        document.getElementById('lightbox').classList.remove('show');
+    };
+
+    // 初始化示例数据
+    function initSample() {
+        if (!localStorage.getItem(STORAGE.EXAMS)) {
+            saveData(STORAGE.EXAMS, [{ id: 1, title: '英语综合测试', description: '含选择、填空、连线、阅读、翻译、作文', duration: 90, createdAt: new Date().toISOString() }]);
+        }
+        if (!localStorage.getItem(STORAGE.QUESTIONS)) {
+            const sampleQs = [
+                { id: 101, exam_id: 1, type: 'single', content: '“Apple”的中文意思是？', options: ['苹果','橘子','香蕉'], answer: '苹果', score: 2 },
+                { id: 102, exam_id: 1, type: 'fill', content: 'I ___ a student. (用be动词适当形式填空)', blanks: ['am'], answer: ['am'], score: 2 },
+                { id: 103, exam_id: 1, type: 'match', content: '连线匹配', pairs: [{ left: 'Apple', right: '苹果' }, { left: 'Cat', right: '猫' }], score: 4 },
+                { id: 104, exam_id: 1, type: 'reading', content: 'Tom is a student. He likes English. He goes to school by bus.', subQuestions: [
+                    { text: 'Tom likes English.', type: 'single', options: ['True','False'], answer: 'True', score: 2 },
+                    { text: 'How does Tom go to school?', type: 'fill', answer: 'by bus', score: 2 }
+                ], score: 4 },
+                { id: 105, exam_id: 1, type: 'translation', content: '请将“你好，很高兴认识你”翻译成英文。', reference: 'Hello, nice to meet you.', score: 5, subjective: true },
+                { id: 106, exam_id: 1, type: 'essay', content: '写一篇关于“My Dream”的短文，不少于50词。', reference: '参考：My dream is to become a teacher...', score: 10, subjective: true }
+            ];
+            saveData(STORAGE.QUESTIONS, sampleQs);
+        }
+        if (!localStorage.getItem(STORAGE.MATERIALS)) {
+            saveData(STORAGE.MATERIALS, [{ id: 1, title: '语法指南', type: 'text', content_url: '<h3>语法基础</h3><p>名词、动词...</p>', createdAt: new Date().toISOString() }]);
+        }
+        if (!localStorage.getItem(STORAGE.RESULTS)) saveData(STORAGE.RESULTS, []);
+    }
+    initSample();
+
+    let currentRoute = 'student', examIdForPage = null, adminLoggedIn = false, timerInterval = null;
+    function navigateToStudent() { if(timerInterval) clearInterval(timerInterval); currentRoute='student'; examIdForPage=null; window.location.hash=''; render(); }
+    function navigateToExam(id) { if(timerInterval) clearInterval(timerInterval); currentRoute='exam'; examIdForPage=parseInt(id); window.location.hash=`exam/${id}`; render(); }
+    function navigateToAdmin() { currentRoute='admin'; examIdForPage=null; window.location.hash='admin'; render(); }
+    function render() {
+        const app = document.getElementById('app');
+        if(currentRoute === 'student') { app.innerHTML = renderStudent(); attachStudentEvents(); }
+        else if(currentRoute === 'exam') { app.innerHTML = renderExam(); attachExamEvents(); }
+        else if(currentRoute === 'admin') { app.innerHTML = renderAdmin(); attachAdminEvents(); }
+    }
+
+    function getFileTypeFromExtension(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) return 'image';
+        if (['mp3','wav','ogg','m4a'].includes(ext)) return 'audio';
+        if (['mp4','webm','avi','mov'].includes(ext)) return 'video';
+        return 'document';
+    }
+
+    function renderStudent() {
+        const materials = getData(STORAGE.MATERIALS);
+        const exams = getData(STORAGE.EXAMS);
+        return `
+            <header class="header"><h1>📚 英学坊</h1><p>多题型 | 全类型资料 | 扫码答题</p><button class="btn-home" onclick="navigateToAdmin()">🔐 管理员登录</button></header>
+            <main class="container">
+                <section class="section"><h2>📖 学习资料</h2><div class="materials-grid">${materials.map(m=>{
+                    let contentHtml = '';
+                    if(m.type === 'text') contentHtml = `<div>${m.content_url}</div>`;
+                    else if(m.type === 'audio') contentHtml = `<audio controls src="${m.content_url}"></audio>`;
+                    else if(m.type === 'video') contentHtml = `<video controls src="${m.content_url}" style="max-width:100%"></video>`;
+                    else if(m.type === 'image') contentHtml = `<img src="${m.content_url}" class="material-img" alt="${escapeHtml(m.title)}" onclick="openLightbox('${m.content_url}')">`;
+                    else if(m.type === 'document') {
+                        const icon = m.fileName ? (m.fileName.includes('.pdf')?'📄 PDF':(m.fileName.includes('doc')?'📝 Word':(m.fileName.includes('xls')?'📊 Excel':(m.fileName.includes('ppt')?'📽️ PPT':'📁 文档')))) : '📁 文档';
+                        contentHtml = `<div class="doc-preview">${icon} - ${escapeHtml(m.fileName || '文档')}</div>`;
+                    }
+                    const downloadLink = (m.content_url && (m.type !== 'text' || m.fileName)) ? `<a href="${m.content_url}" download="${escapeHtml(m.fileName || m.title)}" class="download-btn" target="_blank">📥 下载文件</a>` : '';
+                    return `
+                    <div class="material-card"><h3>${escapeHtml(m.title)}</h3><div class="material-type">${m.type==='text'?'📄文本':m.type==='audio'?'🎵音频':m.type==='video'?'🎬视频':m.type==='image'?'🖼️图片':'📂办公文档'}</div>
+                    ${contentHtml}
+                    ${downloadLink}
+                    <small>${new Date(m.createdAt).toLocaleString()}</small></div>`}).join('')}</div></section>
+                <section class="section"><h2>✍️ 在线考试</h2><div class="exams-list">${exams.map(e=>`
+                    <div class="exam-card"><h3>📝 ${escapeHtml(e.title)}</h3><p>${escapeHtml(e.description||'')}</p><div>⏱️ ${e.duration}分钟</div>
+                    <button class="btn-start" data-id="${e.id}">开始考试</button></div>`).join('')}</div></section>
+            </main><footer class="footer"><p>© 2025 英学坊 | 支持上传Word/Excel/PPT/PDF/音视频/图片 均可下载</p></footer>`;
+    }
+    function attachStudentEvents() {
+        document.querySelectorAll('.btn-start').forEach(btn=>btn.addEventListener('click',e=>navigateToExam(btn.dataset.id)));
+    }
+
+    // 考试页面（保持不变）
+    function renderExam() {
+        const exams = getData(STORAGE.EXAMS);
+        const exam = exams.find(e=>e.id===examIdForPage);
+        if(!exam) return '<div class="container">考试不存在</div>';
+        const questions = getData(STORAGE.QUESTIONS).filter(q=>q.exam_id===examIdForPage);
+        if(!questions.length) return '<div class="container">暂无题目</div>';
+        return `
+            <header class="header"><h1>📝 ${escapeHtml(exam.title)}</h1><button class="btn-home" onclick="navigateToStudent()">返回首页</button></header>
+            <main class="container" id="examContainer">
+                <div class="exam-header"><div class="exam-timer">⏰ 剩余时间: <span id="timerDisplay">${exam.duration}:00</span></div></div>
+                <form id="examForm"><div class="student-info"><input type="text" id="studentName" placeholder="姓名" required><input type="text" id="studentId" placeholder="学号" required></div>
+                <div id="questionsArea">${questions.map((q,idx)=>renderQuestion(q,idx)).join('')}</div>
+                <button type="submit" class="btn-submit">提交试卷</button></form>
+            </main>`;
+    }
+    function renderQuestion(q, idx) {
+        if(q.type === 'single') {
+            return `<div class="question-card"><div class="question-title">${idx+1}. ${escapeHtml(q.content)} (${q.score}分)</div><div class="options">
+                ${q.options.map(opt=>`<label class="option"><input type="radio" name="q${q.id}" value="${escapeHtml(opt)}"> ${escapeHtml(opt)}</label>`).join('')}</div></div>`;
+        } else if(q.type === 'fill') {
+            return `<div class="question-card"><div class="question-title">${idx+1}. ${escapeHtml(q.content)} (${q.score}分)</div>
+                <input type="text" name="q${q.id}" placeholder="填写答案" style="width:100%"></div>`;
+        } else if(q.type === 'match') {
+            let pairsHtml = `<div class="question-card"><div class="question-title">${idx+1}. 连线匹配 (${q.score}分)</div>`;
+            q.pairs.forEach((pair,i)=>{
+                pairsHtml += `<div class="match-row"><div class="match-left">${escapeHtml(pair.left)}</div>
+                <select name="match_${q.id}_${i}"><option value="">-- 请选择匹配项 --</option>${q.pairs.map(p=>`<option value="${escapeHtml(p.right)}">${escapeHtml(p.right)}</option>`).join('')}</select></div>`;
+            });
+            pairsHtml += `</div>`;
+            return pairsHtml;
+        } else if(q.type === 'reading') {
+            let html = `<div class="question-card"><div class="question-title">${idx+1}. 阅读理解 (${q.score}分)</div><div class="passage-text">${escapeHtml(q.content)}</div>`;
+            q.subQuestions.forEach((sub,subIdx)=>{
+                if(sub.type === 'single') {
+                    html += `<div style="margin-top:10px"><strong>${subIdx+1}. ${escapeHtml(sub.text)}</strong><div class="options">${sub.options.map(opt=>`<label class="option"><input type="radio" name="q${q.id}_sub${subIdx}" value="${escapeHtml(opt)}"> ${escapeHtml(opt)}</label>`).join('')}</div></div>`;
+                } else if(sub.type === 'fill') {
+                    html += `<div style="margin-top:10px"><strong>${subIdx+1}. ${escapeHtml(sub.text)}</strong><br><input type="text" name="q${q.id}_sub${subIdx}" placeholder="填写答案" style="width:100%"></div>`;
+                }
+            });
+            html += `</div>`;
+            return html;
+        } else if(q.type === 'translation') {
+            return `<div class="question-card"><div class="question-title">${idx+1}. 翻译题 (${q.score}分)</div><div>${escapeHtml(q.content)}</div><textarea name="q${q.id}" rows="3" style="width:100%" placeholder="请输入翻译..."></textarea></div>`;
+        } else if(q.type === 'essay') {
+            return `<div class="question-card"><div class="question-title">${idx+1}. 作文题 (${q.score}分)</div><div>${escapeHtml(q.content)}</div><textarea name="q${q.id}" rows="6" style="width:100%" placeholder="在此写作..."></textarea></div>`;
+        }
+        return '';
+    }
+
+    function attachExamEvents() {
+        const exams = getData(STORAGE.EXAMS);
+        const exam = exams.find(e=>e.id===examIdForPage);
+        if(!exam) return;
+        let minutes = exam.duration, seconds = 0;
+        const timerSpan = document.getElementById('timerDisplay');
+        if(timerSpan) {
+            if(timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(()=>{
+                if(seconds===0) { if(minutes===0){ clearInterval(timerInterval); alert('时间到，自动提交'); submitExam(); return; } minutes--; seconds=59; }
+                else seconds--;
+                timerSpan.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+            },1000);
+        }
+        const form = document.getElementById('examForm');
+        if(form) {
+            form.removeEventListener('submit', submitExamHandler);
+            form.addEventListener('submit', submitExamHandler);
+        }
+        function submitExamHandler(e) { e.preventDefault(); if(confirm('确认提交？')){ if(timerInterval) clearInterval(timerInterval); submitExam(); } }
+    }
+
+    async function submitExam() {
+        const studentName = document.getElementById('studentName').value.trim();
+        const studentId = document.getElementById('studentId').value.trim();
+        if(!studentName || !studentId) { alert('请填写姓名和学号'); return; }
+        const questions = getData(STORAGE.QUESTIONS).filter(q=>q.exam_id===examIdForPage);
+        let answers = {};
+        let totalScore = 0, earnedScore = 0;
+        let gradingDetails = [];
+
+        for(let q of questions) {
+            totalScore += q.score;
+            let userAnswer = null;
+            let earned = 0;
+            if(q.type === 'single') {
+                userAnswer = document.querySelector(`input[name="q${q.id}"]:checked`)?.value || '';
+                earned = (userAnswer === q.answer) ? q.score : 0;
+                answers[q.id] = userAnswer;
+            } else if(q.type === 'fill') {
+                userAnswer = document.querySelector(`input[name="q${q.id}"]`)?.value.trim() || '';
+                earned = (userAnswer.toLowerCase() === q.answer[0].toLowerCase()) ? q.score : 0;
+                answers[q.id] = userAnswer;
+            } else if(q.type === 'match') {
+                let correctCount = 0;
+                let matchAnswers = [];
+                for(let i=0;i<q.pairs.length;i++) {
+                    let selected = document.querySelector(`select[name="match_${q.id}_${i}"]`)?.value || '';
+                    matchAnswers.push(selected);
+                    if(selected === q.pairs[i].right) correctCount++;
+                }
+                earned = (correctCount / q.pairs.length) * q.score;
+                answers[q.id] = matchAnswers;
+            } else if(q.type === 'reading') {
+                let subEarned = 0;
+                let subAnswers = [];
+                for(let si=0; si<q.subQuestions.length; si++) {
+                    let sub = q.subQuestions[si];
+                    let subAns = '';
+                    if(sub.type === 'single') {
+                        subAns = document.querySelector(`input[name="q${q.id}_sub${si}"]:checked`)?.value || '';
+                        if(subAns === sub.answer) subEarned += sub.score;
+                    } else if(sub.type === 'fill') {
+                        subAns = document.querySelector(`input[name="q${q.id}_sub${si}"]`)?.value.trim() || '';
+                        if(subAns.toLowerCase() === sub.answer.toLowerCase()) subEarned += sub.score;
+                    }
+                    subAnswers.push(subAns);
+                }
+                earned = subEarned;
+                answers[q.id] = subAnswers;
+            } else if(q.type === 'translation' || q.type === 'essay') {
+                userAnswer = document.querySelector(`textarea[name="q${q.id}"]`)?.value || '';
+                let reference = q.reference || '';
+                let scoreRef = 0;
+                if(q.type === 'translation') {
+                    let keywords = reference.toLowerCase().split(/\s+/);
+                    let matchCount = keywords.filter(kw => userAnswer.toLowerCase().includes(kw)).length;
+                    scoreRef = Math.min(q.score, Math.floor((matchCount / Math.max(1,keywords.length)) * q.score));
+                } else {
+                    let len = userAnswer.length;
+                    if(len < 20) scoreRef = 0;
+                    else if(len < 50) scoreRef = Math.floor(q.score * 0.3);
+                    else if(len < 100) scoreRef = Math.floor(q.score * 0.6);
+                    else scoreRef = q.score;
+                }
+                earned = scoreRef;
+                answers[q.id] = userAnswer;
+                gradingDetails.push({ id: q.id, type: q.type, content: q.content, userAnswer, reference, suggestedScore: earned, maxScore: q.score });
+            }
+            earnedScore += earned;
+        }
+        const result = { id: Date.now(), exam_id: examIdForPage, student_name: studentName, student_id: studentId, score: earnedScore, total_score: totalScore, submit_time: new Date().toISOString(), answers, gradingDetails };
+        let results = getData(STORAGE.RESULTS);
+        results.push(result);
+        saveData(STORAGE.RESULTS, results);
+        alert(`提交成功！您的得分: ${earnedScore} / ${totalScore}\n主观题参考分已给出，管理员可在后台查看并调整。`);
+        navigateToStudent();
+    }
+
+    // ---------- 管理员后台 (修复模板导入和二维码) ----------
+    function renderAdmin() {
+        if(!adminLoggedIn) return `<div class="container"><div class="login-panel"><h2>管理员登录</h2><input id="adminUser" value="admin"><input id="adminPass" type="password" value="password"><button id="adminLoginBtn">登录</button></div></div>`;
+        const exams = getData(STORAGE.EXAMS);
+        return `
+            <header class="header"><h1>🔧 英学坊管理中心</h1><button class="btn-logout" id="logoutAdminBtn">退出</button><button class="btn-home" onclick="navigateToStudent()">学生端</button></header>
+            <main class="container"><div class="tabs">
+                <button class="tab-btn active" data-tab="materials">📁 资料管理</button>
+                <button class="tab-btn" data-tab="questions">📝 多题型出题</button>
+                <button class="tab-btn" data-tab="templates">📄 Word模板导入</button>
+                <button class="tab-btn" data-tab="results">📊 考试结果&分析</button>
+                <button class="tab-btn" data-tab="qrcode">📱 二维码/扫码</button>
+            </div>
+            <div id="tab-materials" class="tab-content active">${renderMaterialsTab()}</div>
+            <div id="tab-questions" class="tab-content">${renderQuestionsTab()}</div>
+            <div id="tab-templates" class="tab-content">${renderTemplatesTab()}</div>
+            <div id="tab-results" class="tab-content">${renderResultsTab()}</div>
+            <div id="tab-qrcode" class="tab-content">${renderQRCodeTab()}</div>
+            </main>`;
+    }
+
+    function renderMaterialsTab() {
+        const materials = getData(STORAGE.MATERIALS);
+        return `<h3>上传资料（支持任意格式：文本/图片/音视频/Word/Excel/PPT/PDF等）</h3>
+        <form id="materialForm">
+            <input id="matTitle" placeholder="资料标题" required>
+            <select id="matType">
+                <option value="text">文本（直接输入或上传txt）</option>
+                <option value="image">图片</option>
+                <option value="audio">音频</option>
+                <option value="video">视频</option>
+                <option value="document">办公文档（Word/Excel/PPT/PDF）</option>
+            </select>
+            <div id="textDiv">
+                <textarea id="textContent" rows="4" placeholder="直接输入文本内容（支持HTML）"></textarea>
+                <div class="file-hint">或上传 .txt 文件： <input type="file" id="txtFile" accept=".txt,.html"></div>
+            </div>
+            <div id="mediaDiv" style="display:none">
+                <input type="file" id="mediaFile" accept="*/*">
+                <div class="file-hint">支持所有常见格式：图片(jpg/png/gif)，音频(mp3/wav)，视频(mp4/webm)，文档(doc/docx/xls/xlsx/ppt/pptx/pdf)</div>
+            </div>
+            <button type="submit" id="submitMaterialBtn">上传资料</button>
+        </form>
+        <hr><h4>已有资料（支持下载）</h4>
+        <div id="materialsList">${materials.map(m=>{
+            const downloadLink = (m.content_url && (m.type !== 'text' || m.fileName)) ? `<a href="${m.content_url}" download="${escapeHtml(m.fileName || m.title)}" style="margin-left:10px;background:#3b82f6;padding:2px 8px;border-radius:20px;color:white;text-decoration:none;">📥 下载</a>` : '';
+            return `<div><strong>${escapeHtml(m.title)}</strong> (${m.type}) ${downloadLink} <small>${new Date(m.createdAt).toLocaleString()}</small></div>`;
+        }).join('')}</div>`;
+    }
+
+    function renderQuestionsTab() {
+        const exams = getData(STORAGE.EXAMS);
+        return `<h3>手动添加题目（支持：单选、填空、连线、阅读、翻译、作文）</h3>
+        <select id="targetExam"><option value="">--选择考试--</option>${exams.map(e=>`<option value="${e.id}">${escapeHtml(e.title)}</option>`).join('')}</select>
+        <select id="newQType"><option value="single">单选题</option><option value="fill">填空题</option><option value="match">连线题</option><option value="reading">阅读理解</option><option value="translation">翻译题</option><option value="essay">作文题</option></select>
+        <div id="dynamicQuestionForm"></div>
+        <button id="addManualQuestionBtn">添加题目</button>
+        <hr><h4>现有题目</h4><div id="existingQuestionsList">${getData(STORAGE.QUESTIONS).map(q=>`<div>${q.type} - ${escapeHtml(q.content.substring(0,50))}</div>`).join('')}</div>`;
+    }
+
+    function renderTemplatesTab() {
+        return `<h3>📥 下载Word模板并批量导入题目</h3>
+        <p>点击下方按钮下载各题型模板（.docx），填写后上传即可自动解析并导入。<strong>注意：目前仅支持单选题模板的自动解析，其他题型请手动添加。</strong></p>
+        <div>
+            <button id="downloadSingleTemplate" class="template-download">📥 单选题模板</button>
+            <button id="downloadFillTemplate" class="template-download">📥 填空题模板</button>
+            <button id="downloadMatchTemplate" class="template-download">📥 连线题模板</button>
+            <button id="downloadReadingTemplate" class="template-download">📥 阅读题模板</button>
+            <button id="downloadTransTemplate" class="template-download">📥 翻译题模板</button>
+            <button id="downloadEssayTemplate" class="template-download">📥 作文题模板</button>
+        </div>
+        <hr><h4>上传模板文件（.docx）</h4>
+        <select id="targetExamForTemplate">${getData(STORAGE.EXAMS).map(e=>`<option value="${e.id}">${escapeHtml(e.title)}</option>`).join('')}</select>
+        <input type="file" id="templateDocx" accept=".docx">
+        <button id="uploadTemplateBtn">解析并导入题目</button>
+        <div id="templateParseResult"></div>`;
+    }
+
+    function renderResultsTab() {
+        const exams = getData(STORAGE.EXAMS);
+        return `<h3>考试数据分析</h3><select id="analysisExamSelect">${exams.map(e=>`<option value="${e.id}">${escapeHtml(e.title)}</option>`).join('')}</select><button id="loadAnalysisBtn">加载分析</button><div id="analysisContainer"></div>`;
+    }
+
+    function renderQRCodeTab() {
+        const exams = getData(STORAGE.EXAMS);
+        return `<h3>生成考试二维码（学生微信扫码答题）</h3><select id="qrExamSelect">${exams.map(e=>`<option value="${e.id}">${escapeHtml(e.title)}</option>`).join('')}</select><button id="genQRBtn">生成二维码</button><div id="qrDisplay"></div>`;
+    }
+
+    // 动态表单
+    function updateDynamicForm() {
+        const type = document.getElementById('newQType')?.value;
+        const container = document.getElementById('dynamicQuestionForm');
+        if(!container) return;
+        if(type === 'single') container.innerHTML = `<input id="qContent" placeholder="题目内容"><input id="qOptions" placeholder='选项（JSON数组，如：["苹果","橘子"]）'><input id="qAnswer" placeholder="正确答案"><input id="qScore" placeholder="分值" value="2">`;
+        else if(type === 'fill') container.innerHTML = `<input id="qContent" placeholder="题目内容（如：I ___ a student.）"><input id="qAnswer" placeholder="答案"><input id="qScore" placeholder="分值" value="2">`;
+        else if(type === 'match') container.innerHTML = `<textarea id="matchData" rows="4" placeholder='配对数据 JSON: [{"left":"Apple","right":"苹果"}]'></textarea><input id="qScore" placeholder="分值" value="4">`;
+        else if(type === 'reading') container.innerHTML = `<textarea id="readingPassage" rows="4" placeholder="文章内容"></textarea><textarea id="readingSubs" rows="6" placeholder='子题目JSON: [{"text":"问题1","type":"single","options":["True","False"],"answer":"True","score":2}]'></textarea><input id="qScore" placeholder="总分" value="4">`;
+        else if(type === 'translation') container.innerHTML = `<textarea id="transContent" rows="3" placeholder="待翻译句子"></textarea><input id="transRef" placeholder="参考译文"><input id="qScore" placeholder="分值" value="5">`;
+        else if(type === 'essay') container.innerHTML = `<textarea id="essayTopic" rows="3" placeholder="作文题目"></textarea><input id="essayRef" placeholder="参考范文/要点"><input id="qScore" placeholder="分值" value="10">`;
+    }
+
+    function downloadTemplate(filename, content) {
+        const blob = new Blob([content], {type: 'application/msword'});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
+    // 核心：解析Word模板（支持单选题）
+    async function parseWordTemplate(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        const text = result.value;
+        const questions = [];
+        const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+        for (let line of lines) {
+            // 格式：题目内容 | 选项1,选项2,选项3 | 答案 | 分值
+            const parts = line.split('|').map(p => p.trim());
+            if (parts.length >= 4) {
+                const content = parts[0];
+                const options = parts[1].split(',').map(opt => opt.trim());
+                const answer = parts[2];
+                const score = parseInt(parts[3]) || 2;
+                if (content && options.length && answer) {
+                    questions.push({ type: 'single', content, options, answer, score });
+                }
+            }
+        }
+        return questions;
+    }
+
+    // 所有事件绑定（修复按钮无响应）
+    function attachAdminEvents() {
+        // ---------- 资料上传 ----------
+        const matType = document.getElementById('matType');
+        const textDiv = document.getElementById('textDiv');
+        const mediaDiv = document.getElementById('mediaDiv');
+        if (matType) {
+            matType.onchange = () => {
+                const val = matType.value;
+                if (val === 'text') { textDiv.style.display = 'block'; mediaDiv.style.display = 'none'; }
+                else { textDiv.style.display = 'none'; mediaDiv.style.display = 'block'; }
+            };
+            matType.onchange();
+        }
+        const materialForm = document.getElementById('materialForm');
+        if (materialForm) {
+            materialForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('matTitle').value.trim();
+                if (!title) { showToast('请输入标题', true); return; }
+                let type = document.getElementById('matType').value;
+                let contentUrl = '', fileName = '';
+                if (type === 'text') {
+                    const txtFile = document.getElementById('txtFile').files[0];
+                    if (txtFile) {
+                        const text = await txtFile.text();
+                        contentUrl = `<pre>${escapeHtml(text)}</pre>`;
+                        fileName = txtFile.name;
+                    } else {
+                        contentUrl = document.getElementById('textContent').value;
+                        if (!contentUrl) { showToast('请输入文本内容或上传txt文件', true); return; }
+                    }
+                } else {
+                    const media = document.getElementById('mediaFile').files[0];
+                    if (!media) { showToast('请选择文件', true); return; }
+                    const detected = getFileTypeFromExtension(media.name);
+                    if (detected !== type && type !== 'document') type = detected;
+                    const reader = new FileReader();
+                    contentUrl = await new Promise((resolve) => {
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.readAsDataURL(media);
+                    });
+                    fileName = media.name;
+                }
+                const materials = getData(STORAGE.MATERIALS);
+                materials.push({ id: Date.now(), title, type, content_url: contentUrl, fileName, createdAt: new Date().toISOString() });
+                saveData(STORAGE.MATERIALS, materials);
+                showToast('资料上传成功');
+                render();
+            };
+        }
+
+        // ---------- 手动出题 ----------
+        const newQType = document.getElementById('newQType');
+        if (newQType) { newQType.onchange = updateDynamicForm; updateDynamicForm(); }
+        const addBtn = document.getElementById('addManualQuestionBtn');
+        if (addBtn) {
+            addBtn.onclick = () => {
+                const examId = parseInt(document.getElementById('targetExam').value);
+                if (!examId) { showToast('请选择考试', true); return; }
+                const type = document.getElementById('newQType').value;
+                let newQ = { id: Date.now(), exam_id: examId, type, score: 2 };
+                try {
+                    if (type === 'single') {
+                        newQ.content = document.getElementById('qContent').value;
+                        newQ.options = JSON.parse(document.getElementById('qOptions').value);
+                        newQ.answer = document.getElementById('qAnswer').value;
+                        newQ.score = parseInt(document.getElementById('qScore').value);
+                    } else if (type === 'fill') {
+                        newQ.content = document.getElementById('qContent').value;
+                        newQ.answer = [document.getElementById('qAnswer').value];
+                        newQ.score = parseInt(document.getElementById('qScore').value);
+                    } else if (type === 'match') {
+                        newQ.pairs = JSON.parse(document.getElementById('matchData').value);
+                        newQ.score = parseInt(document.getElementById('qScore').value);
+                    } else if (type === 'reading') {
+                        newQ.content = document.getElementById('readingPassage').value;
+                        newQ.subQuestions = JSON.parse(document.getElementById('readingSubs').value);
+                        newQ.score = parseInt(document.getElementById('qScore').value);
+                    } else if (type === 'translation') {
+                        newQ.content = document.getElementById('transContent').value;
+                        newQ.reference = document.getElementById('transRef').value;
+                        newQ.score = parseInt(document.getElementById('qScore').value);
+                        newQ.subjective = true;
+                    } else if (type === 'essay') {
+                        newQ.content = document.getElementById('essayTopic').value;
+                        newQ.reference = document.getElementById('essayRef').value;
+                        newQ.score = parseInt(document.getElementById('qScore').value);
+                        newQ.subjective = true;
+                    }
+                    const questions = getData(STORAGE.QUESTIONS);
+                    questions.push(newQ);
+                    saveData(STORAGE.QUESTIONS, questions);
+                    showToast('题目添加成功');
+                    render();
+                } catch (e) { showToast('输入格式错误，请检查JSON', true); }
+            };
+        }
+
+        // ---------- 模板下载 ----------
+        document.getElementById('downloadSingleTemplate')?.addEventListener('click', () => downloadTemplate('单选题模板.docx', '题目 | 选项A,选项B,选项C | 答案 | 分值\n示例：Apple的中文意思是？ | 苹果,橘子,香蕉 | 苹果 | 2'));
+        document.getElementById('downloadFillTemplate')?.addEventListener('click', () => downloadTemplate('填空题模板.docx', '题目内容 | 答案 | 分值\nI ___ a student. | am | 2'));
+        document.getElementById('downloadMatchTemplate')?.addEventListener('click', () => downloadTemplate('连线题模板.docx', '左侧,右侧\nApple,苹果\nCat,猫'));
+        document.getElementById('downloadReadingTemplate')?.addEventListener('click', () => downloadTemplate('阅读题模板.docx', '文章内容\n子题1|类型(single/fill)|选项|答案|分值'));
+        document.getElementById('downloadTransTemplate')?.addEventListener('click', () => downloadTemplate('翻译题模板.docx', '待翻译句子|参考译文|分值'));
+        document.getElementById('downloadEssayTemplate')?.addEventListener('click', () => downloadTemplate('作文题模板.docx', '作文题目|参考范文|分值'));
+
+        // ---------- 模板导入（修复核心问题）----------
+        const uploadBtn = document.getElementById('uploadTemplateBtn');
+        if (uploadBtn) {
+            uploadBtn.onclick = async () => {
+                const examId = parseInt(document.getElementById('targetExamForTemplate').value);
+                const fileInput = document.getElementById('templateDocx');
+                const file = fileInput.files[0];
+                if (!examId) { showToast('请选择考试', true); return; }
+                if (!file) { showToast('请选择Word文件', true); return; }
+                if (!file.name.endsWith('.docx')) { showToast('请上传.docx格式文件', true); return; }
+                try {
+                    const parsed = await parseWordTemplate(file);
+                    if (parsed.length === 0) { showToast('未解析到有效题目，请确保格式为：题目|选项1,选项2,选项3|答案|分值', true); return; }
+                    const questions = getData(STORAGE.QUESTIONS);
+                    parsed.forEach(q => {
+                        q.id = Date.now() + Math.random();
+                        q.exam_id = examId;
+                        questions.push(q);
+                    });
+                    saveData(STORAGE.QUESTIONS, questions);
+                    showToast(`成功导入 ${parsed.length} 道单选题`);
+                    // 清空文件选择
+                    fileInput.value = '';
+                    render();
+                } catch (err) {
+                    console.error(err);
+                    showToast('解析失败，请检查文件格式', true);
+                }
+            };
+        }
+
+        // ---------- 数据分析 ----------
+        const analysisBtn = document.getElementById('loadAnalysisBtn');
+        if (analysisBtn) {
+            analysisBtn.onclick = () => {
+                const examId = parseInt(document.getElementById('analysisExamSelect').value);
+                const results = getData(STORAGE.RESULTS).filter(r => r.exam_id === examId);
+                const questions = getData(STORAGE.QUESTIONS).filter(q => q.exam_id === examId);
+                let html = `<h4>考试概况</h4><p>参考人数: ${results.length} 平均分: ${results.length ? (results.reduce((a,b)=>a+b.score,0)/results.length).toFixed(1) : 0}</p><h4>题目正确率/得分率</h4>能杆<th>题目</th><th>类型</th><th>平均得分率</th></tr>`;
+                for (let q of questions) {
+                    let totalEarned = 0;
+                    results.forEach(r => {
+                        if (q.type === 'single' || q.type === 'fill') totalEarned += (r.answers[q.id] === q.answer ? q.score : 0);
+                        else if (q.type === 'match') totalEarned += (r.answers[q.id]?.filter((v,i)=>v===q.pairs[i].right).length / q.pairs.length) * q.score;
+                        else totalEarned += r.gradingDetails?.find(g=>g.id===q.id)?.suggestedScore || 0;
+                    });
+                    const rate = results.length ? (totalEarned/(results.length*q.score)*100).toFixed(1) : 0;
+                    html += `<tr><td>${escapeHtml(q.content.substring(0,30))}</td><td>${q.type}</td><td>${rate}%</td></tr>`;
+                }
+                html += `</table><h4>学生成绩列表</h4><table><tr><th>姓名</th><th>学号</th><th>得分/总分</th><th>提交时间</th></tr>`;
+                results.forEach(r => html += `<tr><td>${escapeHtml(r.student_name)}</td><td>${r.student_id}</td><td>${r.score}/${r.total_score}</td><td>${new Date(r.submit_time).toLocaleString()}</td></tr>`);
+                html += `</table>`;
+                document.getElementById('analysisContainer').innerHTML = html;
+            };
+        }
+
+        // ---------- 二维码生成 ----------
+        const genQR = document.getElementById('genQRBtn');
+        if (genQR) {
+            genQR.onclick = () => {
+                const examId = document.getElementById('qrExamSelect').value;
+                if (!examId) { showToast('请选择考试', true); return; }
+                const url = `${window.location.origin}${window.location.pathname}#exam/${examId}`;
+                const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+                document.getElementById('qrDisplay').innerHTML = `
+                    <img src="${qrApi}" style="width:200px; margin-top:1rem;">
+                    <br><a href="${url}" target="_blank">考试链接</a>
+                    <p>学生微信扫码即可答题</p>
+                `;
+                showToast('二维码已生成');
+            };
+        }
+
+        // ---------- 退出登录 ----------
+        const logoutBtn = document.getElementById('logoutAdminBtn');
+        if (logoutBtn) logoutBtn.onclick = () => { adminLoggedIn = false; render(); };
+
+        // ---------- Tab切换 ----------
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+            };
+        });
+    }
+
+    // 登录处理
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'adminLoginBtn') {
+            const user = document.getElementById('adminUser')?.value;
+            const pass = document.getElementById('adminPass')?.value;
+            if (user === 'admin' && pass === 'password') { adminLoggedIn = true; render(); }
+            else showToast('用户名或密码错误', true);
+        }
+    });
+
+    function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>]/g, m => m==='&'?'&amp;': m==='<'?'&lt;':'&gt;'); }
+    window.navigateToStudent = navigateToStudent; window.navigateToExam = navigateToExam; window.navigateToAdmin = navigateToAdmin;
+    function handleHash() {
+        const h = window.location.hash.slice(1);
+        if (h.startsWith('exam/')) navigateToExam(h.split('/')[1]);
+        else if (h === 'admin') { currentRoute = 'admin'; render(); }
+        else navigateToStudent();
+    }
+    window.addEventListener('hashchange', handleHash);
+    handleHash();
+</script>
+</body>
+</html>
